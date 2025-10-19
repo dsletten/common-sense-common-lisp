@@ -38,13 +38,33 @@
                                     :fill-pointer t
                                     :initial-contents (list "apples" "bananas" "cucumbers" "dates" "elderberries")))
 
+;; (defun insert (a i obj)
+;;   (assert (<= 0 i (length a)) () "Invalid index: ~A" i)
+;;   (flet ((shift-up ()
+;;            (setf (subseq a (1+ i)) (subseq a i))))
+;;     (vector-push-extend nil a)
+;;     (shift-up)
+;;     (setf (aref a i) obj)))
+
 (defun insert (a i obj)
   (assert (<= 0 i (length a)) () "Invalid index: ~A" i)
-  (flet ((shift-up ()
+  (flet ((extend (a)
+           (unless (array-in-bounds-p a (fill-pointer a))
+             (adjust-array a (* 2 (length a))))
+           (incf (fill-pointer a)))
+         (shift-up (a)
            (setf (subseq a (1+ i)) (subseq a i))))
-    (vector-push-extend nil a)
-    (shift-up)
+    (extend a)
+    (shift-up a)
     (setf (aref a i) obj)))
+
+;; (defun delete (a i)
+;;   (assert (<= 0 i (1- (length a))) () "Invalid index: ~A" i)
+;;   (flet ((shift-down ()
+;;            (setf (subseq a i) (subseq a (1+ i)))) )
+;;     (prog1 (aref a i)
+;;       (shift-down)
+;;       (vector-pop a))))
 
 (defun delete (a i)
   (assert (<= 0 i (1- (length a))) () "Invalid index: ~A" i)
@@ -52,7 +72,7 @@
            (setf (subseq a i) (subseq a (1+ i)))) )
     (prog1 (aref a i)
       (shift-down)
-      (vector-pop a))))
+      (decf (fill-pointer a)))) )
 
 (format t "Shopping list: ~A~%" *shopping-list*)
 
